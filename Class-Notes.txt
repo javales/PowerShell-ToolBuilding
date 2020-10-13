@@ -1,0 +1,135 @@
+Subject: Oct 13-15th- WorkshopPLUS - Windows PowerShell: Tool Building
+ 
+Hello WorkshopPLUS Students,
+
+ 
+
+You are registered for a Microsoft Remote Delivery starting Tuesday morning and this e-mail will explain the details. Please read this entire email as there are some action items for you to complete before Tuesday’s start to ensure a smooth delivery and positive educational experience.
+
+ 
+
+This workshop is being delivered “remotely,” which means the instructors will be located at a different location than you; the content of the workshop will be hosted in the cloud and downloaded the first day of the workshop.
+
+ 
+
+ 
+
+WorkshopPLUS Details
+
+ 
+
+WorkshopPLUS Remote Delivery –Windows PowerShell: Tool Building
+
+Oct 13-15th, 2020
+
+9:00 AM PST
+
+Presenter: Kory Thacher
+
+How the Offering Works: The workshop will be delivered via Microsoft Teams. The instructor provides a combination of PowerPoint, live demos, and Q&A to deliver a rich and effective learning experience.
+
+ 
+
+Cloud Hosted Lab Environment
+
+Lab Access:  http://aka.ms/premiereducation
+Event Training Key*:  *********
+ 
+
+*Please Test Connectivity as soon as possible, using the Event Training Key highlighted above. To test your connection, please go to https://docs.learnondemandsystems.com/tms/connectivity-requires.md and click on "Launch a LODS Virtual Lab." This will test that you can launch the labs and that you have the needed system requirements.
+
+ 
+
+On the day of the workshop, log-into the Premier Education Services website (http://aka.ms/premiereducation) and click on WorkshopPLUS -> My Training -> Redeem Training Key, then populate your provided Event Training Key. Click on Launch Test Lab. To exit, click on the Exit icon on the top right of the VM.
+
+ 
+
+You’ll need a Microsoft account (formerly known as Windows Live). You can use any Microsoft account. Sign up for one at: http://signup.live.com
+
+ 
+
+Course Materials
+
+To provide students with the most up to date materials, the workshop manuals are available online. Once you login to the Cloud Hosted Lab Environment you will have access to the course materials.
+
+ 
+
+Meeting Information
+
+Attendee Access: https://workshopplus.eventbuilder.com/******
+
+This link contains the meeting access points for each day of the delivery.
+
+ 
+
+This workshop will be held in Microsoft Teams. You will need a microphone and speakers or headset to join.
+
+ 
+
+DESKTOP CLIENT (RECOMMENDED): If you are currently using the Microsoft Teams desktop client, you should be all set. If you are not currently using the desktop client, we recommend installing it here: https://teams.microsoft.com/downloads
+ 
+
+WEB APP: If you are not using the Microsoft Teams desktop client, you will join as a guest using the web app. Please review the following requirements:
+Supported browser: Microsoft Edge or Google Chrome
+Operating System: Windows 10, Windows 8.1, or Windows 7 Service Pack 1 in 32-bit and 64-bit. For the best experience, use the latest version of any operating system.
+Broadband internet connection of 2 mbps minimum per attendee
+At a minimum you should make sure that the following common ports are open:
+-TCP ports 80 and 443 outgoing from clients that will use Teams
+
+-UDP ports 3478 through 3481 outgoing from clients that will use Teams
+
+Workshop support: support@eventbuilder.com
+ 
+
+ 
+
+How to join the workshop:
+
+ 
+
+1.  Once you click the link ‘Attendee Access’ listed above you will be directed to a landing page that lists all of the days of your workshop. Please find the correct day and click the “Join” button.
+
+ 
+
+
+
+ 
+
+2.  Click on the “Join” button and you will be asked to fill in a few fields with basic information (first name, last name, email, company). 
+
+ 
+
+
+
+ 
+
+3.  If you already have the Teams client installed, you will be routed into the Teams room automatically, or you may click the “Open your Teams app” button. If you do not have Teams installed, you can click the “Download the Windows app” to install the app (recommended), or you may click “Continue on this browser” to join as a guest.
+
+ 
+
+
+
+ 
+
+ 
+
+If you need assistance, we are available to help via email. We will also be available 30 minutes before class starts on Tuesday to help troubleshoot any connectivity issues.
+
+ 
+
+Understand the Logistics – It can be challenging to keep the class on-schedule in a remote setting. We will be adhering to start/end times strictly for that reason. We plan to break for about 1 hour for lunch, which typically occurs at noon. We will also be including other 15-minute breaks as we do with our in-person workshops.  It may be a good idea to bring lunch for the next three days. Please plan accordingly as there will not be a recording of this available after the workshop.
+
+ 
+
+If you have difficulty testing your connectivity to the hosted lab, please contact me directly.
+
+ 
+
+Enjoy the workshop!
+
+Kory Thacher
+
+Customer Success Engineer | Modern Applications |  PowerShell | Blog | (Office: 425-421-6363
+
+Manager: Ken Rhodes | ( 949-263-3031 | KenR@Microsoft.com
+
