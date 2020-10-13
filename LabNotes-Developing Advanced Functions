@@ -1,0 +1,186 @@
+# The Test-NetConnection Cmdlet tests TCP port availability.
+Test-NetConnection -ComputerName WIN10 -Port 135
+
+# You can use the Measure-Command cmdlet to calculate how long the command will wait (timeout) when a port is unavailable. Run this code:
+Measure-Command -Expression {Test-NetConnection -ComputerName WIN10 -Port 5000}
+
+# The Test-NetConnection cmdlet does not expose a way to control the timeout period. The .NET framework or class library contains a possible solution to this problem in the data type System.Net.Sockets.TcpClient. Create a new instance of System.Net.Sockets.TcpClient, store it into a variable called $tcpClient and use its members to connect to TCP port 135 on WIN10. Run the commands below.
+
+# Use the New-Object cmdlet to create a new instance of a .NET class. Store a reference to the new object in a variable, then use Get-Member to discover its members by running the following code:
+
+# PowerShell
+$tcpClient = New-Object System.Net.Sockets.TcpClient
+$tcpClient | Get-Member
+
+# Look at the overload definitions for the connect method to see how it can be called.
+$tcpClient.Connect
+
+# Use one of the overloads to attempt to connect to port 135
+$tcpClient.Connect('WIN10', 135)
+$tcpClient.Connected
+
+# Function Code:
+function Test-Port
+{
+  Param($HostName, $TcpPort, $MsTimeOut)
+
+  $tcpClient = New-Object System.Net.Sockets.TcpClient  
+
+  # This will call the asynchronous method ConnectAsync which will return immediately
+  $ConnectionTask = $tcpClient.ConnectAsync($HostName,$TcpPort)
+
+  # Create a delay Task which will trigger if time is exceeded.
+  $TimeOutTask = [System.Threading.Tasks.Task]::Delay($MsTimeOut)
+
+  # This blocks execution until either of the tasks has completed.
+  $CompletedTaskIndex = [System.Threading.Tasks.Task]::WaitAny($ConnectionTask,$TimeOutTask)
+
+  # When we get here one of the Tasks has completed. It if is the
+  # timeout then that is the cause. Do error possible error handling
+  # NOTE Completion can also occur due to an Exception
+  if($TimeOutTask.IsCompleted -or $ConnectionTask.IsFaulted)
+  {
+     # Possible logging etc.
+     # $ConnectionTask.Exception.InnerExceptions
+  }
+
+
+  # Create an Object with relevant properties and values set using a hashtable
+  [pscustomobject]@{
+      Hostname = $HostName
+      Port = $TcpPort
+      Connected = $tcpClient.Connected
+      }
+}
+
+
+# There is no Exchange server in this environment, so you might want to write out a different response if the server can't be reached and it's not just the port. Enhance the function with the ability to check whether the remote computer is responding to ICMP (ping) requests. If the computer is not available, do not execute the ConnectAsync() method, but instead, return a message to the operator. Solution code can be found below.
+
+Search for Cmdlets with the verb Test that can verify TCP connectivity.
+
+# PowerShell
+function Test-Port {
+       param(
+       $HostName,
+       $TcpPort,
+       $MsTimeOut
+       )
+   if (Test-Connection -ComputerName $HostName -Count 1 -Quiet)
+       {
+           $tcpClient = New-Object System.Net.Sockets.TcpClient
+           $connection = $tcpClient.BeginConnect($HostName,$TcpPort,$null,$null)
+           $asyncResult = $connection.AsyncWaitHandle.WaitOne($MsTimeOut,$false)
+           $Connected = $tcpClient.Connected
+           [pscustomobject]@{
+              Hostname = $HostName
+              Port = $TcpPort
+              Connected = $Connected
+              }
+       }
+   Else
+       {
+           Write-Host "The computer $HostName is not responding to a ping request" -ForegroundColor Yellow
+       }
+}
+
+# It is always a good idea to save your code. A good location in the is C:\PShell\Labs and a file name suggestion is: Test-Port.ps1. You will be expanding this function later.
+
+# Fix for broken port syntax command:
+Test-PortRange -ComputerName WIN10 -Ports (445..455) -TimeOut 10
+
+# Done Code C:\PShell\Labs\Test-Port.ps1.:
+Function Test-Port
+
+{
+
+          param(
+
+      $HostName,
+
+      $TcpPort,
+
+      $MsTimeOut
+
+      )
+
+  if (Test-Connection -ComputerName $HostName -Count 1 -Quiet)
+
+      {
+
+          $tcpClient = New-Object System.Net.Sockets.TcpClient
+
+          $connection = $tcpClient.BeginConnect($HostName,$TcpPort,$null,$null)
+
+          $asyncResult = $connection.AsyncWaitHandle.WaitOne($MsTimeOut,$false)
+
+          $Connected = $tcpClient.Connected
+
+          [pscustomobject]@{
+
+             Hostname = $HostName
+
+             Port = $TcpPort
+
+             Connected = $Connected
+
+             }
+
+      }
+
+  Else
+
+      {
+
+          Write-Host "The computer $HostName is not responding to a ping request" -ForegroundColor Yellow
+
+      }
+
+ 
+
+}
+
+ 
+
+function Test-PortRange {
+
+   param(
+
+   $ComputerName,
+
+   $Ports,
+
+   $Timeout = 10,
+
+   [switch]$Progress
+
+   )
+
+ 
+
+   $Count=0
+
+ 
+
+   foreach ($Port in $Ports)
+
+   {
+
+       
+
+       if ($Progress)
+
+       {
+
+           Write-Progress -Activity "Connecting to $ComputerName" -Status "Progress: $([int]($count/$Ports.count * 100))%" -PercentComplete $($count/$Ports.count * 100)
+
+           $count++
+
+           Start-Sleep -Seconds 5
+
+       }
+
+       Test-Port -HostName $ComputerName -TcpPort $Port -MsTimeOut $TimeOut
+
+   }
+
+}

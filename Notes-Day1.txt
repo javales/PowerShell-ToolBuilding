@@ -1,0 +1,259 @@
+support email: support@learnondemand.zendesk.com
+300, 400 level course
+6 months of access to labs
+
+# Knowledge Refresh
+Module 1
+Foundation Course
+cmdlets written verb-noun
+parameters (e.g. -Path)
+parameter value
+switch parameter does not need a value (default on)
+-syntax
+get-help -showwindow
+Aliases - short names for cmdlets, built in or created by user
+- ls, dir, gci for Get-ChildItem
+Pipeline - vertical bar/pipe to pass output of cmdlet to input of another cmdlet
+- converting, filtering, formatting, and outputting data
+- Foreach-Object and Where-Object... [?]
+Functions - reusable block of PS code given a friendly name
+- work like cmdlets
+- basic function - reduced capabilities
+- advanced functions - can build modules, provide tools for others, package up scripts
+Objects - all data in PS is represented as Object
+- information = properties
+- actions = methods
+- type = template of available members
+- object = instance of a type
+- properties and methods are known as members
+Datatype Usage
+- type casting - converting across data types using square brackets
+- static members - :: access members that live on type itself, not instances of data
+- strong typing - 
+Arrays
+- collections, lists of data
+- create by comma separating values or with @()
+- indexes count from 0
+- supports negative indexes
+Hash Tables
+- lookup Tables
+- collections
+- use keywords to look up specific values
+- collection providing 
+- @{KEY = value}
+Flow Control - Loops
+- While
+- Do While
+- Do Until
+- For
+- Foreach - generally what we use
+Flow Control - Decisions
+- If...Elseif...Else
+- switch - runs every single one that is true, built in foreach 
+Flow Control - keywords
+- Break
+- Continue - got to top of loop or switch
+- Return - immediately exit immediate function,...
+$_ represents data we are given that does not have a name
+- get-service | where {$_.CanPauseAndContinue} -- repeats until no more services
+- get-service | where {$_.CanPauseAndContinue} | foreach {$_.DisplayName}
+
+# Developing Advanced Functions
+- basic functions:
+default behavior:
+ all parameters are optional
+- accepts any data type
+- positional
+can have:
+- default values
+- strong typing
+STOP:
+$args is not best practice, so stop using for cmdlets, not supported in advanced functions
+[?] - what was the second thing to not do with $p1,$p2,$p3
+
+[CmdletBinding()] Attribute
+- makes a function behave like a compiled cmdlet
+
+function MyFunction
+{
+    [cmdletbinding()]
+    param()
+
+    Write-Error "custom error"
+
+    Write-Warning
+
+    Write-Debug "special debug message"
+
+    Write-Verbose "hidden verbose data"
+
+    write-host "hello world" -Foregroundcolor Green
+}
+
+- common parameter is on every cmdlet
+- MyFunction -Verbose
+- MyFunction -Verbose -Debug
+-$erroraction = Continue
+SilentlyContinue
+stop
+-cmdletbinding gives us access to all these above
+
+Function KillProcess
+{
+    [cmdletbinding(
+        SupportShouldProcess
+        ConfirmImpact = "Low"
+    )]
+    param($procName)
+
+    $proc = Get-Process -name $procName
+
+    if($PSCmdlet.ShouldProcess("TARGET", "ACTION"))
+    {
+        $proc.kill()
+    }
+    
+    write-host "end" -Foregroundcolor Green
+}
+
+KillProcess notepad
+KillProcess notepad -WhatIf
+
+
+SupportShouldProcess - gives us access to Risk Mitigation parameters
+- WhatIf - whenever something might be dangerous
+- what we want is what stop process has
+Stop-Process -name notepad -WhatIf
+
+"action code" 
+
+$PSCmdlet...
+
+Function KillProcess
+{
+    [cmdletbinding(
+        SupportShouldProcess
+        ConfirmImpact = "Low"
+    )]
+    param($procName)
+
+    $proc = Get-Process -name $procName
+
+    if($PSCmdlet.ShouldProcess("$($proc.name) ($($proc.Id))", "Kill the process"))
+    {
+        $proc.kill()
+    }
+    
+    write-host "end" -Foregroundcolor Green
+}
+
+Built in ... called $ConfirmPreference
+Set ConfirmImpact to "High"
+anything highly dangerous generates confirmation pop-up
+-Confirm:$false
+
+
+Function MyFunction
+{
+    param(
+        [parameter(Mandatory,HelpMessage="This is written in green")]$p1, 
+        [parameter(Mandatory,HelpMessage="This is written in yellow")]$p2)
+
+    Write-host "P1: $p1" -Foregroundcolor Green
+    Write-host "P2: $p2" -Foregroundcolor Yellow
+
+}
+
+MyFunction 1 2
+
+get-command MyFunction -syntax
+- square brackets are optional
+- <> mean replace me
+
+Use !? to display the above HelpMessage values per parameter
+
+cmdletbinding and param can also be used in scripts, not just in functions
+
+Take data from pipeline two different ways:
+- by value
+- by propertyname
+
+Function PipeTest
+{
+    param(
+        [parameter(ValueFromPipeline)][int]$p1, 
+        [parameter()]$p2)
+
+    Write-host "P1: $p1" -Foregroundcolor Green
+    Write-host "P2: $p2" -Foregroundcolor Yellow
+
+}
+
+"some text" | PipeTest
+vs
+with integer...
+5 | PipeTest
+
+PS converts both
+Should only allow one parameter in by value to avoid the 5 and 5 issue for 5 | PipeTest
+
+
+function ServicePipe
+{
+    param([parameter(ValueFromPipelineByPropertyName)]$DisplayName,
+          [parameter(ValueFromPipelineByPropertyName)]$Status,
+          [parameter(ValueFromPipelineByPropertyName)]$startuptype)
+    Process
+    {
+        Write-host "$DisplayName is $Status - $startuptype" -ForegroundColor Green
+    }
+   
+}
+
+get-service | ServicePipe
+
+3 keywords can be used to organize function:
+begin
+process
+end
+- begin and end only one time run (for logging, messaging,...)
+
+CSV First Last email
+
+function PeoplePipe
+{
+    param([parameter](ValueFromPipelineByPropertyName)]$email,
+    [parameter](ValueFromPipelineByPropertyName)]$first,
+    [parameter](ValueFromPipelineByPropertyName)]$last,
+    )
+
+    process
+    {
+        write-host $first $last $email -Foregroundcolor Cyan
+    }
+
+}
+
+import-csv C:\path\import.csv | PeoplePipe
+
+COOL FEATURE to deal with unexpected column name above
+- use alias at top of function
+- but best used on parameters
+
+function PeoplePipe
+{
+    param([parameter](ValueFromPipelineByPropertyName)]$email,
+    [parameter](ValueFromPipelineByPropertyName)][alias("FirstName")]$first,
+    [parameter](ValueFromPipelineByPropertyName)][alias("LastName","test")]$last,
+    )
+
+    process
+    {
+        write-host $first $last $email -Foregroundcolor Cyan
+    }
+
+}
+
+import-csv C:\path\import.csv | PeoplePipe
+PeoplePipe -test "hello" -first "k" -email "hi@helo.com"
+
