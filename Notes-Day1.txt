@@ -257,3 +257,64 @@ function PeoplePipe
 import-csv C:\path\import.csv | PeoplePipe
 PeoplePipe -test "hello" -first "k" -email "hi@helo.com"
 
+Attributes that begin with "Validate"
+- prevent code from running unless we have the exact expected data
+- ValidateCount, ValidateLength, ValidateRange
+- Used most: ValidatePattern, ValidateScript, ValidateSet
+- ValidateNotNull, ValidateNotNullOrEmpty
+
+function PatternTest
+{
+    [cmdletbinding()]
+    param([validatepattern("\d{3}")]$test)
+
+    $test
+}
+
+PatternTest "hello 123"
+PatternTest "hello 12"
+
+
+function SetTest
+{
+    [cmdletbinding()]
+    param([validateSET("val1","val2","val3")]$test)
+
+    $test
+}
+
+SetTest -test val1
+SetTest -test FAKE
+
+
+function ScriptTest
+{
+    [cmdletbinding()]
+    param([validateSCRIPT({$_ -gt (get-date)})][datetime]$date)
+
+    $date
+}
+
+ScriptTest -date "9/21/2020"
+ScriptTest -date "9/21/2021"
+
+
+Can put along with cmdletbinding at the top OutputType to provide an auto-complete experience
+- reflected in Get-Help
+- 
+
+[?] "Overloading a Method"
+
+Using Classes Across Tools
+- don't copy paste code into projects
+- best practice is to keep code in its own file, reuse across scripts
+- dot-source files from scripts that need to use the Classes
+. $PSScriptRoot\Myperson.PS1
+$Person = [Person]::new("Kory",29)
+
+Module
+- where cmdlets, variables, and data types come from
+- package classes and scripts together
+
+PowerShell Gallery .com
+- 

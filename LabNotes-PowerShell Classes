@@ -1,0 +1,74 @@
+# Task 2.1: Constructors
+Constructors are used to create instances of our class. The default constructor is defined implicitly and can be called without argument as has the syntax [ClassName]::New(). This is the one you used in the previous exercises. If you plan to initialize the properties of the object on creation, such as the "Name" and "Species", you can accomplish this within the constructor(s) of the class.
+
+NOTE: You can make as many unique constructors as you want.
+
+Instead of assigning values to the properties after the creation of the object using dot notation, we can set the values for the properties name and species at creation (i.e. construction) of the pet object. To add a custom constructor, you first must define the default one by hand.
+
+Constructors will look like methods (including the curly braces and parentheses)
+Constructors always have the same name as the class.
+A constructor always returns an object of the type of the class it was defined in and therefore does not have a return type specified; in our case the type is "[pet]".
+Somewhere inside of your class, add the basic constructor pet(){}
+
+Now you can also make pets like this $pet = [pet]::new("Cupcake",[species]::Cat)
+
+Your class should now look like this:
+
+PowerShell
+Enum species
+{
+    Dog
+    Cat
+    Iguana
+    Turtle
+    Rabbit
+}
+class pet
+{
+    #region Properties
+    [string] $name
+    [species] $species
+    #endregion
+    #region constructors
+    pet(){}
+    pet($n,[species]$s)
+    {
+        $this.name = $n
+        $this.species = $s
+    }
+    #endregion
+    #region Methods
+    [void] DoTrick()
+    {
+        write-host "$($this.name) does a trick!" -ForegroundColor Green
+        write-host "WOW GASP IMPRESSIVE CLAP CLAP CLAP `n" -ForegroundColor yellow
+    }
+    [void] Speak()
+    {
+        write-host "My name is $($this.name) and I am a $($this.species). I'm here to do a trick for you" -ForegroundColor Cyan
+    }
+    [void] Speak([string]$s)
+    {
+        write-host "$s" -ForegroundColor red
+    }
+    #endregion
+}
+
+# Task 3.2: Inheritance
+Inheritance allows us to derive new classes from an existing class. The new class is known as a subclass and the class derived from is is known as a subclass. If the base class changes all members that are inherited and have not been overloaded will also change in the subclass. This allows simple propagation of changes from a base class down to all subclasses derived from it.
+
+This is useful if you have a several similar subclasses defined from the same baseclass. Each subclass will share members from the base class however can have subclass specific members of their own.
+
+If we look an analogy of inheritance in biology (not scientific but conceptual) we have a class LivingOrganisms from which Mamals inherit and in turn Humans inherit from Mamals and so on. The further from the base class the more specific the class becomes. At each level however they share from their ancestor classes.
+
+In this exercise you will explore it by making specific subclasses of our [pet] for [dog] and [cat]. Dog & Cat will both be inherit members from [pet] and can extend or overload the base class members with their own specific members.
+
+## Setting up inheritance involves defining a new class and specifying what existing class is is based on. The syntax is \ : \. Define the class Cat below:
+
+NOTE: This is what the term "Base class" is when you see it, and also what some people call the "Parent" class
+
+PowerShell
+class cat : pet
+{
+
+}
