@@ -1,0 +1,264 @@
+Get-Help About_redirection -ShowWindow
+
+'C:\windows','C:\fakefolder','C:\users' | Get-Item 2>> Save-Errors.txt
+
+'C:\windows','C:\fakefolder','C:\users' | Get-Item 2>> Save-Errors.txt 1>> Save-Output.txt
+
+The $Error automatic variable contains an array of error objects that represent the most recent errors. Type the command below to view the most recent error.
+
+$Error[0]
+
+What command will produce just the specific error message as a string (i.e. Cannot find path 'C:\FakeFile' because it does not exist.)?
+$Error[0].Exception | get-member
+$Error[0].Exception.Message
+
+
+Run the following command to clear the $Error variable:
+
+$Error.Clear()
+
+
+Execute the following command to generate a new error and store that error object in a user-defined variable:
+
+Test-Connection fakeserver -Count 1 -ErrorVariable myError
+
+Which variables now store the most recent error?
+The above command will overwrite the $myError variable each time it is run. This is different from the $Error automatic variable which continually prepends errors up to the $MaximumErrorCount limit. To append errors in –ErrorVariable, like $Error, prefix the error variable name with a "+" symbol (i.e. –ErrorVariable +myError).
+
+PS C:\WINDOWS\system32> Write-Output of $Error[0] and $myError
+
+of
+
+Test-Connection : Testing connection to computer 'fakeserver' failed: No such host is known
+
+At line:1 char:1
+
++ Test-Connection fakeserver -Count 1 -ErrorVariable myError
+
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   + CategoryInfo          : ResourceUnavailable: (fakeserver:String) [Test-Connection], PingException
+
+   + FullyQualifiedErrorId : TestConnectionException,Microsoft.PowerShell.Commands.TestConnectionCommand
+
+
+and
+
+Test-Connection : Testing connection to computer 'fakeserver' failed: No such host is known
+
+At line:1 char:1
+
++ Test-Connection fakeserver -Count 1 -ErrorVariable myError
+
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   + CategoryInfo          : ResourceUnavailable: (fakeserver:String) [Test-Connection], PingException
+
+   + FullyQualifiedErrorId : TestConnectionException,Microsoft.PowerShell.Commands.TestConnectionCommand
+
+
+# By default all errors that are raised are added to the $Error array. What common parameter and parameter value can you use to prevent this from happening?
+Test-Connection fakeserver -Count 1 -ErrorVariable myError -ErrorAction Ignore
+
+# Task 1.4: $ErrorActionPreference and $WarningPreference
+PowerShell uses preference variables to affect the Windows PowerShell operating environment and all commands run in the environment.
+
+In many cases, the cmdlets have parameters that you can use to override the preference behavior for a specific command.
+
+Alternatively, modify the preference variables to change the default behavior.
+
+Get-Help about_Preference_Variables -showWindow
+
+Please review the below answers
+Variable	Default Value
+$ErrorActionPreference	Continue
+$WarningPreference	Continue
+$VerbosePreference	SilentlyContinue
+$ErrorView	NormalView
+
+
+# C:\PShell\Labs\2.1.ps1
+Function ProcessUserFile
+{
+    Param($UserFile)
+    $users = Import-Csv $UserFile
+
+ foreach ($user in $users){
+    Write-Host "Adding User: $($User.Name)..."
+    $user | New-ADUser –Enabled $True
+    }
+Write-Host "Processing Complete"
+}  
+
+
+# Below, the resulting error message is more specific and user friendly. As the UserFile parameter was unspecified, the sub-expression containing the Throw keyword is executed which generates a terminating error and stops PowerShell from executing the rest of the function. Now, execution stops before the 'Write-Host' cmdlet.
+
+The advanced function features discussed in Module 3 can achieve a similar result using the Mandatory parameter attribute. However, this method highlights the Throw keyword to generate a terminating error.
+
+Function ProcessUserFile
+{
+    Param($UserFile=$(throw "ERROR:`n`tPlease specify a Comma Separated Value file that contains the user data to process`n"))
+    $users = Import-Csv $UserFile
+
+ foreach ($user in $users){
+   Write-Host "Adding User: $($User.Name)..."
+   $user | New-ADUser –Enabled $True
+   }
+
+Write-Host "Processing Complete"
+}  
+
+# Try Catch Finally
+
+## Rerun the script again, and call the function with the same users1.csv.
+
+Now, when the function throws a ParameterBindingException, the first catch block will execute, giving the user a friendly response.
+
+You can have as many catch blocks as required, and a single catch block can catch multiple exception types.
+
+The Write-Verbose cmdlets can also be used in these catch blocks to display additional information by using the -Verbose switch (for advanced functions) or $VerbosePreference.
+
+Catch blocks require the full name of the exception. Investigate the error object to determine the full exception name so it can be caught.
+
+Function ProcessUserFile
+{
+Param($UserFile=$(throw "ERROR:`n`tPlease specify a Comma Separated Value file that contains the user data to process`n"))
+
+Switch ($UserFile){
+   {$_ -isNot [String]}{Throw "ERROR: Please specify a string value for the UserFile Parameter"}
+   {!(Test-Path $_)}{Throw "ERROR: File not found"}
+   {(Get-Item -Path $_).Extension -ne '.csv'}{Throw "ERROR: Please specify a CSV file"}
+   Default {Write-Verbose "Validation complete"}
+}
+
+Try{
+   ForEach ($User in $Users){
+       Write-Host "Adding User: $($User.Name)..."
+       $User | New-ADUser -Enabled $True –ErrorAction Stop
+   }
+}
+
+Catch [System.Management.Automation.ParameterBindingException]{
+   Write-Host "The CSV file provided does not contain the correct information."
+   Write-Host "The CSV file must contain the following values at minimum:"
+   Write-Host "`tSAMAccountName"
+   Write-Host "`tName"
+   Write-Host "`tPath"
+   Write-Verbose $_
+}
+
+Catch{
+   Write-Host "An unknown error occurred"
+   Write-Verbose $_
+}
+
+Finally{
+   Write-Host "Processing Complete"
+}
+
+}
+
+
+# full name of exception error[0]
+$Error[0].Exception.ToString()
+
+
+# Task 2.3: Trap
+The Trap command provides a simpler method of handling terminating error and as such has fewer options than the Try/Catch/Finally method.
+
+## force non-terminating error to be terminating so trap block is executed
+Trap{"Error Trapped!"}
+Get-Service ALF -ErrorAction Stop
+
+## Like Try/Catch, multiple Trap commands can catch different exceptions. PowerShell will use the Trap or Catch command that specifies the most specific exception.
+
+Open C:\PShell\Labs\2.3.ps1 in the Windows PowerShell ISE and run the script.
+
+PowerShell
+trap {"Generic Exception Caught"}
+trap [System.Management.Automation.CommandNotFoundException]{"Error: Command not found"}
+1/0
+Win-Lotto
+
+Notice how the different exceptions were caught by the appropriate Trap{} scriptblock.
+
+
+# Task 2.4: Try Catch Finally and Scope
+The scope in which a terminating error is caught determines the flow of execution after the exception has been thrown.
+
+## Open C:\PShell\Labs\2.4c.ps1 in the Windows PowerShell ISE and execute the script.
+
+## PowerShell
+$ErrorActionPreference = SilentlyContinue
+Function function3 {
+Try {NonsenseString}
+Catch {"Error trapped inside function";Throw}
+"Function3 was completed"
+}
+Cls
+
+Try{Function3}
+Catch {"Internal Function error re-thrown: $($_.ScriptStackTrace)"}
+"Script Completed"
+
+When using Try/Catch/Finally scriptblocks, you also have the option of re-throwing the exception for the parent scope to handle it. This allows you to catch multiple exceptions in different functions, but handle all of them by a single catch block in the script.
+
+For example, you may process a file across several functions, each of which can generate function-specific errors, with the calling scope providing generic additional output information in a single catch block.
+
+### OUTPUT:
+Error trapped inside function
+
+Internal Function error re-thrown: at function3, C:\PShell\Labs\2.4c.ps1: line 3
+
+at <ScriptBlock>, C:\PShell\Labs\2.4c.ps1: line 9
+
+Script Completed
+
+PS C:\WINDOWS\system32>  
+
+
+# Exercise 3: Custom Error Messages
+Windows PowerShell includes a number of cmdlets to generate arbitrary custom errors and warnings.
+
+Objectives
+After completing this exercise, you will be able to:
+
+Generate custom non-terminating errors
+Generate custom warnings
+
+
+# Task 3.1: Write-Error
+The Write-Error cmdlet generates a custom non-terminating error.
+
+Execute the following command:
+
+## PowerShell
+Write-Error "PEBCAK Detected"
+While the error is non-terminating it still gets added to the $Error variable.
+
+You can also add information to the Error object.
+
+Try the following example:
+
+## PowerShell
+Write-Error -Message "PEBCAK" -Exception "UserException" -Category InvalidArgument -CategoryActivity "FollowingInstructions" -RecommendedAction "Resubmit"
+See Get-Help Write-Error for additional options.
+
+View the resulting error object:
+
+## PowerShell
+$Error[0] | Select-Object *
+
+
+# Task 3.2: Write-Error
+Similar to Write-Error, the Write-Warning cmdlet writes a warning message to the Windows PowerShell host. The response to the warning depends on the value of the user's $WarningPreference variable and the use of the -WarningAction common parameter.
+
+Begin by opening Windows PowerShell ISE by right clicking on the PowerShell icon and selecting "Run ISE as an Administrator, or by clicking Run ISE as Administrator..
+
+It might take a moment to start ISE
+
+Try the following example:
+
+## PowerShell
+Write-Warning "Low disk space detected"
+Unlike Write-Error and Throw, Write-Warning does not add to the $Error variable, even if the -WarningAction or $WarningPreference is set to Stop.

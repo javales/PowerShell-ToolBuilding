@@ -1,0 +1,169 @@
+- Debugging Design Time Rrrors vs Runtime Errors (that may only be for specific machine, or specific scenario)
+- hiding errors, stopping error, telling user,...
+
+Two main kinds of errors:
+1. Terminating Errors: - requires try, catch, finally, or trap statement; enters a child scope
+2. Non-Terminating Errors: - can be converted into terminating error
+
+Understanding Streams:
+- some hidden by default, but can be enabled Verbose, Debug, Information
+- erroractionpreference
+- DON'T use Write-Output - probably already goes to Output
+- Try to avoid redirection; instead using the Write-x
+
+# Non-terminating examples
+
+write-host "starting" -ForegroundColor Green
+$services = Get-Service ALG,FAKE,p2pimsvc
+write-host "ending" -ForegroundColor Green
+= sign only cares about output stream, since error is on a separate stream
+
+$? means "did my last command succeed without errors?
+
+write-host "starting" -ForegroundColor Green
+$services = Get-Service ALG,FAKE,p2pimsvc
+if(!$?)
+{
+    write-host "I got an error" -ForegroundColor Yellow
+}
+write-host "ending" -ForegroundColor Green
+
+write-host "starting" -ForegroundColor Green
+$services = Get-Service ALG,FAKE,p2pimsvc -ErrorAction SilentlyContinue
+if(!$?)
+{
+    write-host "I got an error" -ForegroundColor Yellow
+}
+write-host "ending" -ForegroundColor Green
+
+Use $Error to hold every error occurred since PowerShell launch
+$Error.count
+
+get-member -inputobject $Error
+
+$error[0]
+- most recent error in 0 position
+
+$error[0] | GM <-- this is short for Get-member
+
+$error[0].errordetails
+.exception
+.exception.message
+.targetobject
+.exception.stacktrace - will play with this in debug section, showing how we got to the error
+
+$($Error[0]).Exception) as variable in output message to user
+
+"Better way to do this"
+0 
+
+"traps are a lot easier"
+"try/catch are more work" for those with more programming experience
+
+
+write-host "I'm about to make a custom error"
+Throw "Custom error" <-- terminating error
+
+write-host "I'm about to call a fake command"
+somefakecommand
+
+write-host "I'm about to access a fake service"
+get-service FAKE
+ 
+write-host "end" -ForegroundColor Yellow
+
+# Trap
+
+trap
+{
+    Write-host "An unexpected error occurred: $($_.exception.message)" -ForegroundColor Yellow
+    $_.Exception.gettype().fullname
+    #Break #can't fix it
+    Continue #fixed it
+}
+
+trap [DivideByZeroException]
+{
+    Write-host "You can't divide by 0" -ForegroundColor Yellow
+    Break #can't fix it
+    #Continue #fixed it
+}
+
+trap  [System.Management.Automation.CommandNotFoundException]
+{
+    Write-host "I think you typed a command wrong" -ForegroundColor Blue
+    Continue #fixed it
+}
+
+write-host "I'm about to make a custom error" -ForegroundColor Green
+Throw "Custom error"
+
+write-host "I'm about to call a fake command"
+somefakecommand #terminating
+
+write-host "I'm about to divide by 0"
+1/0
+
+write-host "I'm about to access a fake service"
+get-service FAKE #non-terminating, so not picked up by trap
+# use -ErrorAction stop to make above terminating
+
+write-host "end" -ForegroundColor Green
+
+- can work on any terminating error
+- can be used for any unforeseen issues
+- default behavior of trap is not desirable by putting error on screen and code keeps running
+- if CAN'T fix it, use Break in trap
+- intended way to work with error is $($_.exception.message)
+- depending on version of PS, some terminating errors are treated as non-terminating
+- can use traps to identify which are actually terminating
+
+# Try, Catch, finally
+
+Try
+{
+    throw "custom error"
+    write-host "Does this line run???" -ForegroundColor Green
+}
+
+Catch
+{
+    write-host "Caught" $_.exception.message -ForegroundColor Yellow
+    #can rethrow easily
+    #throw
+}
+
+write-host "still running?" -ForegroundColor Green
+
+- good way to say this code may have this error, and I know what I want to do with that error
+- if don't want to fix error, just use "throw" to say not fixed and end code
+
+can have one try matched with multiple catches for different scenarios
+
+Finally runs no matter what
+
+
+# M06_Debugging
+
+$PSDebugContext to determine if we are debugging
+- wrap if/else statements around it
+
+- Mainly breakpoint and call stack cmdlets
+
+## breakpoint
+- pause code
+- prompt changes to prefix of [DBG]
+
+- right-click on line, toggle breakpoint
+- mouse over variables to reveal values when in debug mode -- "Watch Variables"?
+
+Get-PSCallStack
+- top is where you are, each previous line is where you came from
+
+Step Over, Step In, and Step Out
+- 
+
+Can also use write-host, write-debug, or recommended use of write-Verbose
+
+## extra features of debugging, though we don't need them
+- 
