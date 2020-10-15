@@ -167,3 +167,42 @@ Can also use write-host, write-debug, or recommended use of write-Verbose
 
 ## extra features of debugging, though we don't need them
 - 
+
+Get-PSBreakpoint
+- hit line breakpoint vs variable breakpoint
+- 
+
+# Git
+- most used Distributed version control
+- Azure DevOps vs Gitlab
+- remote repo is "correct"
+
+## Push/Pull
+
+Conflicts with pushes:
+- See Capture9
+- stage > commit > pull > fix > push
+
+## Branching and Merging
+- master - might have a rule to never put stuff on master without product manager -- has to be "perfect"
+- dev branch - 
+- can have a branch per release instead of bringing back to master like Capture10
+- can have local branches not seen by others
+
+### git branch dev
+git checkout dev
+git checkout -b dev <-- means dev doesn't exist yet and I want to switch to it
+git branch
+git branch --all
+git merge dev
+
+git status
+
+git reset
+- force back to specific commit
+- guid represents commit
+
+git rebase
+- made a lot of changes, don't want to lose them, just want to revert them
+
+

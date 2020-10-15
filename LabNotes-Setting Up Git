@@ -1,0 +1,14 @@
+# Exercise 2: Git setup
+In this exercise you will:
+
+Install the Posh-Git module
+Create your first repository
+Commit a file to that repository using git commands
+Commit a file to the repository using nano editor
+
+Command	Function
+git init	Creates a blank repository
+git add	Adds file to the staging area
+git commit	Commits files to the repository
+git status	View the repository status
+git log	View the repository history

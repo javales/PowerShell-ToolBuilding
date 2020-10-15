@@ -1,0 +1,141 @@
+# Welcome J to Module 9 - Runspaces
+Estimated time to complete this module: 60 minutes
+Exercise 1: Explore the relationship and differences between runspaces, jobs, hosts, and sessions
+Exercise 2: Exploring Runspace Classes, Methods, and Properties
+Exercise 3: Creating and initializing Runspaces
+Exercise 4: Invoking scripts in runspaces both synchronously and asynchronously
+Exercise 5: Practical Applications/Examples
+Exercise 6: Runspace Pools
+Exercise 7: Using runspace abstraction modules
+Runspaces
+Understanding aspects of using PowerShell runspaces. Their advantages, how to create and initialize them, as well how and when to best utilized them.
+
+Objectives
+After completing this module, you will be able to:
+
+Understand the differences between runspaces and jobs
+Explore Runspace classes, methods, and properties
+Create and initialize runspaces
+Invoke scripts in runspaces
+Using remote runspaces
+View runspace pools
+
+# Task 1: Looking at the relationship between a runspace and a job
+
+# Task 2: Review the relationship between a session and a runspace
+
+ERROR in Answer:
+PS C:\WINDOWS\system32> Get-Runspace | Where-Object {$.RunspaceAvailability -eq 'Busy'}
+
+$.RunspaceAvailability : The term '$.RunspaceAvailability' is not recognized as the name of a cmdlet, function, script file,
+
+or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
+
+CORRECTION:
+$_.RunspaceAvailability : The term '$.RunspaceAvailability' is not recognized as the name of a cmdlet, function, script file,
+
+# Exercise 2: Exploring Runspace Classes, Methods, and Properties
+Objectives
+After completing this exercise, you will be able to:
+
+Understand runspace classes and there relevance when working with runspaces
+
+# Task 1: Looking at the runspaces classes and runspace members
+
+Search for:
+System.Management.Automation.Runspaces.Runspace
+
+PS C:\WINDOWS\system32> $currentRunspace = [System.Management.Automation.Runspaces.Runspace]::DefaultRunspace
+
+STA = Single Thread Apartment
+
+# Exercise 3: Creating and initializing Runspaces
+Objectives
+After completing this exercise, you will be able to:
+
+Understand that there are different ways to initialize runspaces.
+Look how the default elevated runspace is initialized.
+Create runspaces for different used case scenarios.
+
+# Task 1: Reviewing runspace settings
+
+PS C:\WINDOWS\system32> [System.Management.Automation.Runspaces.RunspaceFactory]::CreateRunspace
+
+
+# Exercise 4: Invoking scripts in runspaces both synchronously and asynchronously modes
+Objectives
+After completing this exercise, you will be able to:
+
+Create and initialize a runspace
+Invoke PowerShell command Synchronously
+INvoke PowerShell command Asynchronously
+
+Alternative 1
+
+PowerShell
+$PowerShell.Commands.AddCommand('Get-Service'); $PowerShell.Commands.AddArgument('A*')
+
+Alternative 3
+
+PowerShell
+$Command = $PowerShell.Commands.AddCommand('Get-Service') $Command = $Command.AddParameter('Name','A*') # note that AddCommand returns a PSCommand Object
+
+
+# Task 2: Invoke PowerShell command synchronously
+
+# Task 3: Invoke PowerShell command Asynchronously
+
+# Exercise 5: Practical Applications/Examples
+Objectives
+After completing this module, you will be able to:
+
+Understand the advantages of using runspaces through practical examples.
+
+# Task 1 - create a simple background task
+
+$PowerShell = [PowerShell]::Create()
+[void]$PowerShell.AddScript({Get-Date})
+$PowerShell.Invoke()
+
+# Task 2 - Viewing background runspace processes
+Expanding on task 1, use BeginInvoke() method to give back an async object. Also adding in Start-Sleep to allow the process to run in the background and allow time to view the status. Copy this code into Windows PowerShell ISE:
+
+PowerShell
+$Runspace = [RunspaceFactory]::CreateRunspace()
+$PowerShell = [PowerShell]::Create()
+$PowerShell.Runspace = $Runspace
+$Runspace.Open()
+
+[void]$PowerShell.AddScript({
+  Get-Date
+  Start-Sleep -Seconds 15
+})
+
+$AsyncObject = $PowerShell.BeginInvoke()
+Select the code above in Windows PowerShell ISE, and launch using F8.
+
+Run this code in less than 15 seconds from the above code:
+
+$AsyncObject
+
+
+It's also a good idea to clean up any runspaces running by using a Dispose() method. Run this command:
+
+$PowerShell.Dispose()
+
+# Exercise 6: Runspace Pools
+Objectives
+After completing this module, you will be able to:
+
+Understand how runspace pools can help increase performance.
+
+# Exercise 7: Using runspace abstraction modules
+Objectives
+After completing this exercise, you will be able to:
+
+Get familiar with community created modules which abstract and simplify the use of runspaces.
+Learn how to make use of these modules in order to run code more efficiently in parallel using runspaces.
+See the difference in execution time between thin runspace wrappers and native jobs which is a heavy wrapper around runspaces.
+
+# Task 1: Install 2 runspace abstraction modules and explore their implementation
+

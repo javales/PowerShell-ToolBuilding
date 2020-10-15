@@ -1,0 +1,75 @@
+Runspace 
+- is what does all the work
+- Job vs Runspace, default to Runspace
+
+$powershell.invoke()
+$powershell.dispose()
+
+- can kick off a background task, let it run awhile while we run other code in our script
+
+$powershell.begininvoke() <-- async, running at the same time - Capture11
+$async = $powershell.invoke()
+
+$powershell.endinvoke($async)
+
+Get-Runspace - shows all running runspaces
+
+Runspace Pool aka Runspace Factory
+- build a factory to know it can have 4 threads
+- feed runspaces to factory
+- can just feed everything to factory and wait for it to tell us everything is done
+Capture12
+- use $RunspacePool.GetAvailableRunspaces() to see what is running
+- 
+
+Debug-Runspace
+Runspace streams easier
+
+Lab
+- parallel, async processing
+- kick off, checking if done, get data
+
+Create a GUI in PowerShell
+1. Windows Forms - old, xp views, winforms, cpu-z, limited, don't run well
+2. WPF - windows presentation framework
+- not meant for application building, just for putting on top of simple scripts
+- xaml allows detecting resolution and changing look of app
+"uwp"
+"hub" element at top of Microsoft Store
+must use VS to make these gui's
+
+xaml studio uwp app
+
+website for winforms and WPF
+
+cs is for c sharp
+
+be sure to give elements names so u can access them in PowerShell
+
+events - lightning bolt
+
+Grid xaml to do more than what gui provides
+
+mostly just copy-paste
+-slide33
+#region gui setup (top section is the copy-paste)
+need to know hash tables
+
+stack panel - groups elements like radio buttons together
+
+data binding - links gui elements to ps, and can make it oneway
+- can databind different gui elements together
+
+# POSHGUI
+- poshgui.com
+
+# PS2EXE-GUI
+- not official Microsoft supported tool
+
+# regular-expressions.info
+- 
+
+# hey scripting guy
+
+# powershell gallery
+- like play Store

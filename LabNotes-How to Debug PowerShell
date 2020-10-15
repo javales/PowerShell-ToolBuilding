@@ -1,264 +1,218 @@
-Get-Help About_redirection -ShowWindow
+# Exercise 1: Getting acquainted
+Windows PowerShell provides debugging to help you identify the cause of issues during runtime of your code. This can be extremely helpful when you are running code in production and need to resolve issues quickly. In this exercise, you will get aquatinted with the commands that PowerShell provide to initiate debugging.
 
-'C:\windows','C:\fakefolder','C:\users' | Get-Item 2>> Save-Errors.txt
+Objectives
+After completing this lab, you will be able to:
 
-'C:\windows','C:\fakefolder','C:\users' | Get-Item 2>> Save-Errors.txt 1>> Save-Output.txt
+Control Write-Verbose and Write-Debug output.
+List, set and remove breakpoints using the PSBreakpoint commands
 
-The $Error automatic variable contains an array of error objects that represent the most recent errors. Type the command below to view the most recent error.
+# Task 1.1: Controlling the Debug and Verbose streams
 
-$Error[0]
+## Execute the following command from the console pane:
 
-What command will produce just the specific error message as a string (i.e. Cannot find path 'C:\FakeFile' because it does not exist.)?
-$Error[0].Exception | get-member
-$Error[0].Exception.Message
+Get-Command -Verb Write -Module Microsoft.PowerShell.Utility
 
+This will provide a list of Write commands from the Microsoft.PowerShell.Utility module. Note the Write-Debug and Write-Verbose command.
 
-Run the following command to clear the $Error variable:
 
-$Error.Clear()
+## Execute the following commands from the console pane:
 
+Write-Debug -Message 'Debug message'
 
-Execute the following command to generate a new error and store that error object in a user-defined variable:
+Write-Verbose -Message 'Verbose message'
 
-Test-Connection fakeserver -Count 1 -ErrorVariable myError
+Notice that you do not see any messages displayed. You can use the common switch parameters -Debug and -Verbose for the Write-Debug and Write-Verbose commands respectively. Using these switch parameters will cause the messages to be additionally written to the console (i.e. Output stream). By default the commands will write to the debug and verbose streams respectively and are therefore not seen. Execute the following commands from the console pane (answer with Yes if asked):
 
-Which variables now store the most recent error?
-The above command will overwrite the $myError variable each time it is run. This is different from the $Error automatic variable which continually prepends errors up to the $MaximumErrorCount limit. To append errors in –ErrorVariable, like $Error, prefix the error variable name with a "+" symbol (i.e. –ErrorVariable +myError).
+Write-Debug -Message 'Debug message' -Debug
 
-PS C:\WINDOWS\system32> Write-Output of $Error[0] and $myError
-
-of
-
-Test-Connection : Testing connection to computer 'fakeserver' failed: No such host is known
-
-At line:1 char:1
-
-+ Test-Connection fakeserver -Count 1 -ErrorVariable myError
-
-+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-   + CategoryInfo          : ResourceUnavailable: (fakeserver:String) [Test-Connection], PingException
-
-   + FullyQualifiedErrorId : TestConnectionException,Microsoft.PowerShell.Commands.TestConnectionCommand
-
-
-and
-
-Test-Connection : Testing connection to computer 'fakeserver' failed: No such host is known
-
-At line:1 char:1
-
-+ Test-Connection fakeserver -Count 1 -ErrorVariable myError
-
-+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-   + CategoryInfo          : ResourceUnavailable: (fakeserver:String) [Test-Connection], PingException
-
-   + FullyQualifiedErrorId : TestConnectionException,Microsoft.PowerShell.Commands.TestConnectionCommand
-
-
-# By default all errors that are raised are added to the $Error array. What common parameter and parameter value can you use to prevent this from happening?
-Test-Connection fakeserver -Count 1 -ErrorVariable myError -ErrorAction Ignore
-
-# Task 1.4: $ErrorActionPreference and $WarningPreference
-PowerShell uses preference variables to affect the Windows PowerShell operating environment and all commands run in the environment.
-
-In many cases, the cmdlets have parameters that you can use to override the preference behavior for a specific command.
-
-Alternatively, modify the preference variables to change the default behavior.
-
-Get-Help about_Preference_Variables -showWindow
-
-Please review the below answers
-Variable	Default Value
-$ErrorActionPreference	Continue
-$WarningPreference	Continue
-$VerbosePreference	SilentlyContinue
-$ErrorView	NormalView
-
-
-# C:\PShell\Labs\2.1.ps1
-Function ProcessUserFile
-{
-    Param($UserFile)
-    $users = Import-Csv $UserFile
-
- foreach ($user in $users){
-    Write-Host "Adding User: $($User.Name)..."
-    $user | New-ADUser –Enabled $True
-    }
-Write-Host "Processing Complete"
-}  
-
-
-# Below, the resulting error message is more specific and user friendly. As the UserFile parameter was unspecified, the sub-expression containing the Throw keyword is executed which generates a terminating error and stops PowerShell from executing the rest of the function. Now, execution stops before the 'Write-Host' cmdlet.
-
-The advanced function features discussed in Module 3 can achieve a similar result using the Mandatory parameter attribute. However, this method highlights the Throw keyword to generate a terminating error.
-
-Function ProcessUserFile
-{
-    Param($UserFile=$(throw "ERROR:`n`tPlease specify a Comma Separated Value file that contains the user data to process`n"))
-    $users = Import-Csv $UserFile
-
- foreach ($user in $users){
-   Write-Host "Adding User: $($User.Name)..."
-   $user | New-ADUser –Enabled $True
-   }
-
-Write-Host "Processing Complete"
-}  
-
-# Try Catch Finally
-
-## Rerun the script again, and call the function with the same users1.csv.
-
-Now, when the function throws a ParameterBindingException, the first catch block will execute, giving the user a friendly response.
-
-You can have as many catch blocks as required, and a single catch block can catch multiple exception types.
-
-The Write-Verbose cmdlets can also be used in these catch blocks to display additional information by using the -Verbose switch (for advanced functions) or $VerbosePreference.
-
-Catch blocks require the full name of the exception. Investigate the error object to determine the full exception name so it can be caught.
-
-Function ProcessUserFile
-{
-Param($UserFile=$(throw "ERROR:`n`tPlease specify a Comma Separated Value file that contains the user data to process`n"))
-
-Switch ($UserFile){
-   {$_ -isNot [String]}{Throw "ERROR: Please specify a string value for the UserFile Parameter"}
-   {!(Test-Path $_)}{Throw "ERROR: File not found"}
-   {(Get-Item -Path $_).Extension -ne '.csv'}{Throw "ERROR: Please specify a CSV file"}
-   Default {Write-Verbose "Validation complete"}
-}
-
-Try{
-   ForEach ($User in $Users){
-       Write-Host "Adding User: $($User.Name)..."
-       $User | New-ADUser -Enabled $True –ErrorAction Stop
-   }
-}
-
-Catch [System.Management.Automation.ParameterBindingException]{
-   Write-Host "The CSV file provided does not contain the correct information."
-   Write-Host "The CSV file must contain the following values at minimum:"
-   Write-Host "`tSAMAccountName"
-   Write-Host "`tName"
-   Write-Host "`tPath"
-   Write-Verbose $_
-}
-
-Catch{
-   Write-Host "An unknown error occurred"
-   Write-Verbose $_
-}
-
-Finally{
-   Write-Host "Processing Complete"
-}
-
-}
-
-
-# full name of exception error[0]
-$Error[0].Exception.ToString()
-
-
-# Task 2.3: Trap
-The Trap command provides a simpler method of handling terminating error and as such has fewer options than the Try/Catch/Finally method.
-
-## force non-terminating error to be terminating so trap block is executed
-Trap{"Error Trapped!"}
-Get-Service ALF -ErrorAction Stop
-
-## Like Try/Catch, multiple Trap commands can catch different exceptions. PowerShell will use the Trap or Catch command that specifies the most specific exception.
-
-Open C:\PShell\Labs\2.3.ps1 in the Windows PowerShell ISE and run the script.
-
-PowerShell
-trap {"Generic Exception Caught"}
-trap [System.Management.Automation.CommandNotFoundException]{"Error: Command not found"}
-1/0
-Win-Lotto
-
-Notice how the different exceptions were caught by the appropriate Trap{} scriptblock.
-
-
-# Task 2.4: Try Catch Finally and Scope
-The scope in which a terminating error is caught determines the flow of execution after the exception has been thrown.
-
-## Open C:\PShell\Labs\2.4c.ps1 in the Windows PowerShell ISE and execute the script.
-
-## PowerShell
-$ErrorActionPreference = SilentlyContinue
-Function function3 {
-Try {NonsenseString}
-Catch {"Error trapped inside function";Throw}
-"Function3 was completed"
-}
-Cls
-
-Try{Function3}
-Catch {"Internal Function error re-thrown: $($_.ScriptStackTrace)"}
-"Script Completed"
-
-When using Try/Catch/Finally scriptblocks, you also have the option of re-throwing the exception for the parent scope to handle it. This allows you to catch multiple exceptions in different functions, but handle all of them by a single catch block in the script.
-
-For example, you may process a file across several functions, each of which can generate function-specific errors, with the calling scope providing generic additional output information in a single catch block.
+Write-Verbose -Message 'Verbose message' -Verbose
 
 ### OUTPUT:
-Error trapped inside function
+PS C:\WINDOWS\system32> Write-Debug -Message 'Debug message'
 
-Internal Function error re-thrown: at function3, C:\PShell\Labs\2.4c.ps1: line 3
+PS C:\WINDOWS\system32> Write-Verbose -Message 'Verbose message'
 
-at <ScriptBlock>, C:\PShell\Labs\2.4c.ps1: line 9
+PS C:\WINDOWS\system32> Write-Debug -Message 'Debug message' -Debug
+DEBUG: Debug message
 
-Script Completed
+PS C:\WINDOWS\system32> Write-Verbose -Message 'Verbose message' -Verbose
+VERBOSE: Verbose message
+
+
+## Notice that the messages are now displayed. Another way to achieve this, is by altering preference variables that change the behavior in the scope in which they were set. Take a look at these preference variable values. Execute the following commands from the console pane:
+
+$DebugPreference
+
+$VerbosePreference
+
+Look at the type of object that the preference variables are assigned to using Get-Member.
+
+$DebugPreference | Get-Member
+
+Notice that it is a [System.Management.Automation.ActionPreference] object which happens to be an enumerator. Look at the possible string (i.e. Name) values that can be assigned to it.
+
+[Enum]::GetNames([System.Management.Automation.ActionPreference])
+
+Both are set to SilentlyContinue which causes the messages to be not be shown on the console. They messages are however still written to the Debug and Verbose streams. Alter the value of these preference variables by executing the following commands from the console pane:
+
+$DebugPreference = 'Continue'
+
+$VerbosePreference = 'Continue'
+
+Now execute the following commands from the console pane and note the output:
+
+Write-Debug -Message 'Debug message'
+
+Write-Verbose -Message 'Verbose message'
+
+The setting of the preference variables will affect the stream output in the scope of where it was made. If set within a function it will only affect Write-xxx commands called withing that function or functions called by it.
+
+The messages get displayed without the use of the -Debug and -Verbose parameters. Go back to the original situation by executing these commands from the console pane:
+
+$DebugPreference = 'SilentlyContinue'
+
+$VerbosePreference = 'SilentlyContinue'
+
+There is a a difference in behavior for the Write-Debug as setting the preference variable to 'Continue' will not cause a prompt to appear at each call to Write-Debug
+
+
+# Task 1.2: Working with the PSBreakpoint commands
+Breakpoints allow script execution to be suspended based on certain criteria. They are used for controlling where and why to suspend code execution so that the state of the execution environment can be inspected. When a breakpoint is triggered and the code is suspended an interactive prompt is presented allowing for inspection of thing like variable values, etc.
+
+## Execute the following command from the console pane to get a list of the PSBreakpoint commands:
+
+Get-Command -Noun PSBreakpoint
+
+All of these can be called through the debug menu in PowerShell ISE as well. The calls via the menu however use default arguments and do not give you the same control as you would have if explicitly calling the commands and passing in arguments.
+
+## Try a simple debugging sessions to start with. Execute the following commands from the console pane:
+
+Set-PSBreakpoint -Variable TestVariable -Mode Read
+
+$TestVariable = "Let's debug!"
+
+As you noticed breakpoint has not been triggered yet. When setting the breakpoint in the previous step the condition was to break when the variable TestVariable was being read (i.e. Mode). We only wrote to the variable through the value assignment so far. Execute the following command from the console pane:
+
+Write-Output $TestVariable
+
+Notice that the breakpoint condition was met and that the execution was suspended. An indication of this is the prompt changing to '>>' signaling a request for input. You are now actually debugging. Enter the following at the prompt to get help:
+
+# Exercise 2: Strict mode and debug output
+Windows PowerShell provides a Set-Strictmode cmdlet. Use this to detect many common scripting errors such as uninitialized variables, null references as well as attempts to access non-existing object members (i.e. typically happens due to typo's in code).
+
+In this exercise you will explore this cmdlet, together with cmdlets for displaying debug information to the console.
+
+Objectives
+After completing this lab, you will be able to:
+
+Use the Set-StrictMode cmdlet to detect common scripting errors
+Use the Write-Debug and Write-Verbose cmdlets to display runtime output
+Use the Set-PSDebug cmdlet to enable detailed script tracing
+
+
+## Get-Command -Name *Strict*
+
+PS C:\WINDOWS\system32> Set-StrictMode -Version Latest
+ 
+PS C:\WINDOWS\system32> Get-Help Set-StrictMode -Parameter Version
+
+## Turn off Strict Mode
+Get-Help Set-StrictMode -ShowWindow
+Set-StrictMode -Off
+
+
+# Task 2.2: The Write-Debug and Write-Verbose Cmdlets
+When debugging, it is often useful to write things out to the console. Two ways this can help include:
+
+Writing variable values out when you suspect the value might be altered unexpectedly
+Leaving 'mile markers' in your code to see what has or is being executed. This is especially useful if your code seems to hang or be unresponsive. Maybe it is getting stuck in an infinite loop somewhere.
+Two useful command for accomplishing the above tasks are write-debug and write verbose because their output can be controlled at runtime without actually having to remove the lines later.
+
+## Two preference variables can be set to cause debug and verbose writes to appear on the output stream (i.e. console). In the shell pane, adjust the settings to show the output.
+Get-Help about_preference_variables -ShowWindow
+$DebugPreference = 'Continue'; $VerbosePreference = 'Continue'
+
+## Before you forget, revert back to the original "SilentlyContinue" setting for the $DebugPreference and $VerbosePreference variables.
+$DebugPreference = 'SilentlyContinue'; $VerbosePreference = 'SilentlyContinue'
+
+
+## You are going to use common parameters to display debug and verbose information instead of altering the preference variables. Run Get-PowerShellVersion once with the correct parameter for enabling debug output and once with the correct parameter for enabling verbose output.
+
+PS C:\WINDOWS\system32> Get-PowerShellVersion
+WIN10 has the following PowerShell version(s) installed: 2.0, 5.1.18362.1
+
+PS C:\WINDOWS\system32> Get-PowerShellVersion -Debug
+WIN10 has the following PowerShell version(s) installed: 2.0, 5.1.18362.1
+
+PS C:\WINDOWS\system32> Get-PowerShellVersion -Verbose
+WIN10 has the following PowerShell version(s) installed: 2.0, 5.1.18362.1
+
+PS C:\WINDOWS\system32> C:\PShell\Labs\GetPSVersionInfo.ps1
+
+PS C:\WINDOWS\system32> Get-PowerShellVersion -Debug
+DEBUG: Base key = LocalMachine on node WIN10
+DEBUG: ...SOFTWARE\Microsoft\PowerShell
+DEBUG: ......SOFTWARE\Microsoft\PowerShell\1\PowerShellEngine
+DEBUG: ......SOFTWARE\Microsoft\PowerShell\3\PowerShellEngine
+WIN10 has the following PowerShell version(s) installed: 2.0, 5.1.18362.1
+
+PS C:\WINDOWS\system32> Get-PowerShellVersion -Verbose
+VERBOSE: Opening the (remote) base key
+VERBOSE: ...opening subkey
+VERBOSE: ......opening engine key
+VERBOSE: ......opening engine key
+WIN10 has the following PowerShell version(s) installed: 2.0, 5.1.18362.1
 
 PS C:\WINDOWS\system32>  
 
 
-# Exercise 3: Custom Error Messages
-Windows PowerShell includes a number of cmdlets to generate arbitrary custom errors and warnings.
+# Task 2.3: Using the Set-PSDebug Cmdlet
+Trace data allows you to see the chronological execution of code lines. This means that when you're calling functions and loops you can see what is actually happening and what order they are being called. As you can imagine, trace data can be quite long, but when stuck on a problem it is another useful debugging tool to know about. You'll learn a little more about trace data at the end of this lab as well.
+
+Begin by opening Windows PowerShell ISE by right clicking on the PowerShell icon and selecting "Run ISE as an Administrator", or by clicking Run ISE as Administrator..
+
+NOTE: It might take a moment to start ISE
+
+Within the Windows PowerShell ISE, open the file C:\PShell\Labs\GetPSVersionInfo2.ps1. Examine the code in the Script Pane and note the use of Write-Verbose and Write-Debug statements. Run the script to load the Get-PowerShellVersion. Run the following command from the console pane:
+
+Get-PowerShellVersion
+
+Now, turn on the first level of tracing by executing the following command from the console pane.
+
+Set-PSDebug -Trace 1
+
+Level 1 tracing will just show the lines of code as they run, but you can have more robust tracing as well. Run the command from the console pane again while taking note of the tracing produced:
+
+Get-PowerShellVersion
+
+Increase the trace level by running the command from the console pane:
+
+Set-PSDebug -Trace 2
+
+Level 2 tracing adds on trace info for any function calls and variable assignments as well. Run the command from the console pane again while taking note of the additional tracing produced:
+
+Get-PowerShellVersion
+
+Disable tracing and verify it is disabled by running the function from the console pane again while noticing that it traces the cmdlet that disables it as well:
+
+Set-PSDebug -Trace 0
+
+Get-PowerShellVersion
+
+
+# Exercise 3: The Windows PowerShell debugger
+Windows PowerShell provides an interactive debugger for use within both the ISE and the PowerShell console. Explore the mechanisms for initiating and using the debugger.
 
 Objectives
-After completing this exercise, you will be able to:
+After completing this lab, you will be able to:
 
-Generate custom non-terminating errors
-Generate custom warnings
-
-
-# Task 3.1: Write-Error
-The Write-Error cmdlet generates a custom non-terminating error.
-
-Execute the following command:
-
-## PowerShell
-Write-Error "PEBCAK Detected"
-While the error is non-terminating it still gets added to the $Error variable.
-
-You can also add information to the Error object.
-
-Try the following example:
-
-## PowerShell
-Write-Error -Message "PEBCAK" -Exception "UserException" -Category InvalidArgument -CategoryActivity "FollowingInstructions" -RecommendedAction "Resubmit"
-See Get-Help Write-Error for additional options.
-
-View the resulting error object:
-
-## PowerShell
-$Error[0] | Select-Object *
+Use the ISE debugger
+Use the Set-PSBreakPoint cmdlet
+Debug Windows PowerShell Workflows
+Use the Trace-Command cmdlet
 
 
-# Task 3.2: Write-Error
-Similar to Write-Error, the Write-Warning cmdlet writes a warning message to the Windows PowerShell host. The response to the warning depends on the value of the user's $WarningPreference variable and the use of the -WarningAction common parameter.
+# Task 3.2: The Set-PSBreakpoint Cmdlet
+While the ISE gives you a convenient way to set line breakpoints, it doesn't give other options. Set-PSBreakpoint, however, provides many different options.
 
-Begin by opening Windows PowerShell ISE by right clicking on the PowerShell icon and selecting "Run ISE as an Administrator, or by clicking Run ISE as Administrator..
-
-It might take a moment to start ISE
-
-Try the following example:
-
-## PowerShell
-Write-Warning "Low disk space detected"
-Unlike Write-Error and Throw, Write-Warning does not add to the $Error variable, even if the -WarningAction or $WarningPreference is set to Stop.
